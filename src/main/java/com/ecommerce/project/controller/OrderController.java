@@ -43,7 +43,6 @@ public class OrderController {
         return ResponseEntity.ok(orders);
     }
 
-    // 2. Ver una orden específica del usuario autenticado
     @GetMapping("/user/order/{orderId}")
     public ResponseEntity<OrderDTO> getUserOrderById(@PathVariable Long orderId) {
         String email = authUtil.loggedInEmail();
@@ -51,7 +50,6 @@ public class OrderController {
         return ResponseEntity.ok(order);
     }
 
-    // 3. Ver todas las órdenes (admin)
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/orders")
     public ResponseEntity<List<OrderDTO>> getAllOrders() {
@@ -59,7 +57,6 @@ public class OrderController {
         return ResponseEntity.ok(orders);
     }
 
-    // 4. Ver una orden específica (admin)
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/order/{orderId}")
     public ResponseEntity<OrderDTO> getOrderById(@PathVariable Long orderId) {
