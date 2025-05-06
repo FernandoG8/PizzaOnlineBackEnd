@@ -106,4 +106,40 @@ public class OrderServiceImpl implements OrderService {
 
         return orderDTO;
     }
+
+    @Override
+    public List<OrderDTO> getOrdersByUserEmail(String email) {
+        List<Order> orders = orderRepository.findByEmail(email);
+        return orders.stream().map(this::mapToOrderDTO).toList();
+    }
+
+    @Override
+    public OrderDTO getOrderByIdAndUserEmail(Long orderId, String email) {
+        Order order = orderRepository.findByOrderIdAndEmail(orderId, email)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", orderId));
+        return mapToOrderDTO(order);
+    }
+
+    @Override
+    public List<OrderDTO> getAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+        return orders.stream().map(this::mapToOrderDTO).toList();
+    }
+
+    @Override
+    public OrderDTO getOrderById(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", orderId));
+        return mapToOrderDTO(order);
+    }
+
+    // Método auxiliar para mapear Order a OrderDTO
+    private OrderDTO mapToOrderDTO(Order order) {
+        OrderDTO orderDTO = modelMapper.map(order, OrderDTO.class);
+        List<OrderItemDTO> orderItems = order.getOrderItems().stream()
+                .map(item -> modelMapper.map(item, OrderItemDTO.class))
+                .toList();
+        orderDTO.setOrderItems(orderItems);
+        return orderDTO;
+    }
 }

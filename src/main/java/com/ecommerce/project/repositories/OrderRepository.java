@@ -6,7 +6,11 @@ import org.springframework.stereotype.Repository;
 
 import com.ecommerce.project.model.Order;
 
+import java.util.List;
+import java.util.Optional;
+
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
-
+    List<Order> findByEmail(String email);
+    Optional<Order> findByOrderIdAndEmail(Long orderId, String email);
 }

@@ -7,7 +7,10 @@ import com.ecommerce.project.util.AuthUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -32,5 +35,35 @@ public class OrderController {
                 orderRequestDTO.getPgResponseMessage()
         );
         return new ResponseEntity<>(order, HttpStatus.CREATED);
+    }
+    @GetMapping("/user/orders")
+    public ResponseEntity<List<OrderDTO>> getUserOrders() {
+        String email = authUtil.loggedInEmail();
+        List<OrderDTO> orders = orderService.getOrdersByUserEmail(email);
+        return ResponseEntity.ok(orders);
+    }
+
+    // 2. Ver una orden específica del usuario autenticado
+    @GetMapping("/user/order/{orderId}")
+    public ResponseEntity<OrderDTO> getUserOrderById(@PathVariable Long orderId) {
+        String email = authUtil.loggedInEmail();
+        OrderDTO order = orderService.getOrderByIdAndUserEmail(orderId, email);
+        return ResponseEntity.ok(order);
+    }
+
+    // 3. Ver todas las órdenes (admin)
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/orders")
+    public ResponseEntity<List<OrderDTO>> getAllOrders() {
+        List<OrderDTO> orders = orderService.getAllOrders();
+        return ResponseEntity.ok(orders);
+    }
+
+    // 4. Ver una orden específica (admin)
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/order/{orderId}")
+    public ResponseEntity<OrderDTO> getOrderById(@PathVariable Long orderId) {
+        OrderDTO order = orderService.getOrderById(orderId);
+        return ResponseEntity.ok(order);
     }
 }
