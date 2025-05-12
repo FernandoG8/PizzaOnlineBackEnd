@@ -5,6 +5,7 @@ import com.ecommerce.project.exceptions.ResourceNotFoundException;
 import com.ecommerce.project.model.*;
 import com.ecommerce.project.payload.OrderDTO;
 import com.ecommerce.project.payload.OrderItemDTO;
+import com.ecommerce.project.payload.PaymentStatusUpdateDTO;
 import com.ecommerce.project.repositories.*;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
@@ -41,7 +42,6 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     ProductRepository productRepository;
-
     @Override
     @Transactional
     public OrderDTO placeOrder(String emailId, Long addressId, String paymentMethod, String pgName, String pgPaymentId, String pgStatus, String pgResponseMessage) {
@@ -57,10 +57,25 @@ public class OrderServiceImpl implements OrderService {
         order.setEmail(emailId);
         order.setOrderDate(LocalDate.now());
         order.setTotalAmount(cart.getTotalPrice());
-        order.setOrderStatus("Order Accepted !");
         order.setAddress(address);
 
-        Payment payment = new Payment(paymentMethod, pgPaymentId, pgStatus, pgResponseMessage, pgName);
+        Payment payment;
+        if ("CASH".equals(paymentMethod.toUpperCase())) {
+            // Configuración específica para pago en efectivo
+            order.setOrderStatus("Pending Cash Payment");
+            payment = new Payment(
+                    paymentMethod,
+                    null,
+                    PaymentStatus.PENDING.getStatus(),
+                    "Pending cash payment",
+                    "CASH"
+            );
+        } else {
+            // Flujo normal para otros métodos de pago
+            order.setOrderStatus("Order Accepted !");
+            payment = new Payment(paymentMethod, pgPaymentId, pgStatus, pgResponseMessage, pgName);
+        }
+
         payment.setOrder(order);
         payment = paymentRepository.save(payment);
         order.setPayment(payment);
@@ -88,20 +103,13 @@ public class OrderServiceImpl implements OrderService {
         cart.getCartItems().forEach(item -> {
             int quantity = item.getQuantity();
             Product product = item.getProduct();
-
-            // Reduce stock quantity
             product.setQuantity(product.getQuantity() - quantity);
-
-            // Save product back to the database
             productRepository.save(product);
-
-            // Remove items from cart
             cartService.deleteProductFromCart(cart.getCartId(), item.getProduct().getProductId());
         });
 
         OrderDTO orderDTO = modelMapper.map(savedOrder, OrderDTO.class);
         orderItems.forEach(item -> orderDTO.getOrderItems().add(modelMapper.map(item, OrderItemDTO.class)));
-
         orderDTO.setAddressId(addressId);
 
         return orderDTO;
@@ -142,4 +150,41 @@ public class OrderServiceImpl implements OrderService {
         orderDTO.setOrderItems(orderItems);
         return orderDTO;
     }
+    @Override
+    @Transactional
+    public OrderDTO updatePaymentStatus(Long orderId, PaymentStatusUpdateDTO dto) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", orderId));
+
+        Payment payment = order.getPayment();
+
+
+        System.out.println("Estado recibido: " + dto.getPgStatus());
+        PaymentStatus status = PaymentStatus.fromString(dto.getPgStatus());
+        System.out.println("Estado convertido: " + status);
+
+        payment.setPgStatus(dto.getPgStatus());
+        payment.setPgResponseMessage(dto.getPgResponseMessage());
+
+        switch (status) {
+            case COMPLETED -> {
+                order.setOrderStatus("Completada");
+                System.out.println("Cambiando estado a Completada");
+            }
+            case CANCELLED -> {
+                order.setOrderStatus("Cancelada");
+                System.out.println("Cambiando estado a Cancelada");
+            }
+            case PENDING -> {
+                order.setOrderStatus("La Orden está Pendiente !");
+                System.out.println("Cambiando estado a Pendiente");
+            }
+        }
+
+        paymentRepository.save(payment);
+        Order updatedOrder = orderRepository.save(order);
+
+        return mapToOrderDTO(updatedOrder);
+    }
+
 }

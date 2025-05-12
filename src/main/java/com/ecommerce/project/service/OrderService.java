@@ -1,6 +1,7 @@
 package com.ecommerce.project.service;
 
 import com.ecommerce.project.payload.OrderDTO;
+import com.ecommerce.project.payload.PaymentStatusUpdateDTO;
 import jakarta.transaction.Transactional;
 
 import java.util.List;
@@ -12,4 +13,5 @@ public interface OrderService {
     OrderDTO getOrderByIdAndUserEmail(Long orderId, String email);
     List<OrderDTO> getAllOrders();
     OrderDTO getOrderById(Long orderId);
+    OrderDTO updatePaymentStatus(Long orderId, PaymentStatusUpdateDTO dto);
 }
