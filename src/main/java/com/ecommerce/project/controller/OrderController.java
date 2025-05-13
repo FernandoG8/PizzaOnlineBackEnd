@@ -3,15 +3,21 @@ package com.ecommerce.project.controller;
 import com.ecommerce.project.payload.OrderDTO;
 import com.ecommerce.project.payload.OrderRequestDTO;
 import com.ecommerce.project.payload.PaymentStatusUpdateDTO;
+import com.ecommerce.project.payload.StripePaymentDto;
 import com.ecommerce.project.service.OrderService;
+import com.ecommerce.project.service.StripeService;
 import com.ecommerce.project.util.AuthUtil;
+import com.stripe.exception.StripeException;
+import com.stripe.model.PaymentIntent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -22,6 +28,8 @@ public class OrderController {
 
     @Autowired
     private AuthUtil authUtil;
+    @Autowired
+    private StripeService stripeService;
 
     @PostMapping("/order/users/payments/{paymentMethod}")
     public ResponseEntity<OrderDTO> orderProducts(@PathVariable String paymentMethod, @RequestBody OrderRequestDTO orderRequestDTO) {
@@ -72,5 +80,15 @@ public class OrderController {
             @RequestBody PaymentStatusUpdateDTO paymentStatusUpdateDTO) {
         OrderDTO updatedOrder = orderService.updatePaymentStatus(orderId, paymentStatusUpdateDTO);
         return ResponseEntity.ok(updatedOrder);
+    }
+    @PostMapping("/order/stripe-client-secret")
+    public ResponseEntity<Map<String, String>> createStripeClientSecret(
+            @RequestBody StripePaymentDto stripePaymentDto) throws StripeException {
+        PaymentIntent paymentIntent = stripeService.paymentIntent(stripePaymentDto);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("client_secret", paymentIntent.getClientSecret());
+
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 }

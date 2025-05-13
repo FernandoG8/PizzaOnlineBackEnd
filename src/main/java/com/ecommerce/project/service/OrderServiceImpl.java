@@ -11,12 +11,21 @@ import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import org.springframework.dao.CannotAcquireLockException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.retry.annotation.Backoff;
+
 
 @Service
+@Transactional
+@Retryable(
+        value = {CannotAcquireLockException.class},
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 1000) // 1 segundo entre reintentos
+)
 public class OrderServiceImpl implements OrderService {
 
     @Autowired
