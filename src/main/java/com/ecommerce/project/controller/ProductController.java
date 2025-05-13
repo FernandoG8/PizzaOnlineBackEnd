@@ -1,6 +1,7 @@
 package com.ecommerce.project.controller;
 
 import com.ecommerce.project.config.AppConstants;
+import com.ecommerce.project.payload.IndividualProductDTO;
 import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.service.ProductService;
@@ -38,6 +39,14 @@ public class ProductController {
         ProductResponse productResponse = productService.getAllProducts(pageNumber, pageSize, sortBy, sortOrder);
         return new ResponseEntity<>(productResponse,HttpStatus.OK);
     }
+
+    @GetMapping("/public/products/{productId}")
+    public ResponseEntity<IndividualProductDTO> getIndividualProduct(@PathVariable Long productId) {
+        IndividualProductDTO dto = productService.getIndividualProduct(productId);
+        return ResponseEntity.ok(dto);
+    }
+
+
 
     @GetMapping("/public/categories/{categoryId}/products")
     public ResponseEntity<ProductResponse> getProductsByCategory(@PathVariable Long categoryId,

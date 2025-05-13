@@ -2,6 +2,7 @@ package com.ecommerce.project.controller;
 
 import com.ecommerce.project.payload.OrderDTO;
 import com.ecommerce.project.payload.OrderRequestDTO;
+import com.ecommerce.project.payload.PaymentStatusUpdateDTO;
 import com.ecommerce.project.service.OrderService;
 import com.ecommerce.project.util.AuthUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,5 +63,14 @@ public class OrderController {
     public ResponseEntity<OrderDTO> getOrderById(@PathVariable Long orderId) {
         OrderDTO order = orderService.getOrderById(orderId);
         return ResponseEntity.ok(order);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/admin/order/{orderId}/payment-status")
+    public ResponseEntity<OrderDTO> updatePaymentStatus(
+            @PathVariable Long orderId,
+            @RequestBody PaymentStatusUpdateDTO paymentStatusUpdateDTO) {
+        OrderDTO updatedOrder = orderService.updatePaymentStatus(orderId, paymentStatusUpdateDTO);
+        return ResponseEntity.ok(updatedOrder);
     }
 }

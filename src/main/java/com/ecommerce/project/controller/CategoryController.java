@@ -17,7 +17,7 @@ public class CategoryController {
 
     @Autowired
     private CategoryService categoryService;
-    @PreAuthorize("hasRole('ADMIN')")
+
     @GetMapping("/public/categories")
     public ResponseEntity<CategoryResponse> getAllCategories(
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
@@ -28,6 +28,7 @@ public class CategoryController {
         return new ResponseEntity<>(categoryResponse, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/public/categories")
     public ResponseEntity<CategoryDTO> createCategory(@Valid @RequestBody CategoryDTO categoryDTO){
         CategoryDTO savedCategoryDTO = categoryService.createCategory(categoryDTO);
