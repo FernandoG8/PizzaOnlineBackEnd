@@ -9,6 +9,7 @@ import com.ecommerce.project.service.StripeService;
 import com.ecommerce.project.util.AuthUtil;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,9 +32,23 @@ public class OrderController {
     @Autowired
     private StripeService stripeService;
 
+    @Autowired
+    private StripeService stripeService;
+
     @PostMapping("/order/users/payments/{paymentMethod}")
-    public ResponseEntity<OrderDTO> orderProducts(@PathVariable String paymentMethod, @RequestBody OrderRequestDTO orderRequestDTO) {
+    public ResponseEntity<OrderDTO> orderProducts(
+            @PathVariable String paymentMethod,
+            @RequestBody OrderRequestDTO orderRequestDTO) {
+
         String emailId = authUtil.loggedInEmail();
+
+        if ("CASH".equals(paymentMethod.toUpperCase())) {
+            orderRequestDTO.setPgName("CASH");
+            orderRequestDTO.setPgPaymentId(null);
+            orderRequestDTO.setPgStatus("pending");
+            orderRequestDTO.setPgResponseMessage("Pending cash payment");
+        }
+
         OrderDTO order = orderService.placeOrder(
                 emailId,
                 orderRequestDTO.getAddressId(),
@@ -43,6 +58,7 @@ public class OrderController {
                 orderRequestDTO.getPgStatus(),
                 orderRequestDTO.getPgResponseMessage()
         );
+
         return new ResponseEntity<>(order, HttpStatus.CREATED);
     }
     @GetMapping("/user/orders")
@@ -73,6 +89,7 @@ public class OrderController {
         return ResponseEntity.ok(order);
     }
 
+
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/admin/order/{orderId}/payment-status")
     public ResponseEntity<OrderDTO> updatePaymentStatus(
@@ -81,6 +98,8 @@ public class OrderController {
         OrderDTO updatedOrder = orderService.updatePaymentStatus(orderId, paymentStatusUpdateDTO);
         return ResponseEntity.ok(updatedOrder);
     }
+
+
     @PostMapping("/order/stripe-client-secret")
     public ResponseEntity<Map<String, String>> createStripeClientSecret(
             @RequestBody StripePaymentDto stripePaymentDto) throws StripeException {
@@ -91,4 +110,16 @@ public class OrderController {
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/admin/order/{orderId}/payment-status")
+    public ResponseEntity<OrderDTO> updatePaymentStatus(
+            @PathVariable Long orderId,
+            @RequestBody PaymentStatusUpdateDTO paymentStatusUpdateDTO) {
+        OrderDTO updatedOrder = orderService.updatePaymentStatus(orderId, paymentStatusUpdateDTO);
+        return ResponseEntity.ok(updatedOrder);
+    }
+
 }
+
+

@@ -80,11 +80,13 @@ public class WebSecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:3000",
                 "http://localhost:4200",
-                "http://localhost:8080"
+                "http://localhost:8080",
+                "http://localhost:8000"
 
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
@@ -95,8 +97,8 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                    .cors(cors -> cors.configure(http))
-                    .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
                     .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(auth ->
@@ -107,6 +109,7 @@ public class WebSecurityConfig {
                                     .requestMatchers("/swagger-ui/**").permitAll()
                                     .requestMatchers("/api/test/**").permitAll()
                                     .requestMatchers("/images/**").permitAll()
+                                    .requestMatchers("/api/products/**").permitAll()
                                     .requestMatchers("/api/admin/orders").hasRole("ADMIN")
                                     .requestMatchers("/api/admin/order/**").hasRole("ADMIN")
                                     .requestMatchers("/api/user/orders").authenticated()
