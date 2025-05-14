@@ -29,6 +29,8 @@ public class OrderController {
 
     @Autowired
     private AuthUtil authUtil;
+    @Autowired
+    private StripeService stripeService;
 
     @Autowired
     private StripeService stripeService;
@@ -87,6 +89,17 @@ public class OrderController {
         return ResponseEntity.ok(order);
     }
 
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/admin/order/{orderId}/payment-status")
+    public ResponseEntity<OrderDTO> updatePaymentStatus(
+            @PathVariable Long orderId,
+            @RequestBody PaymentStatusUpdateDTO paymentStatusUpdateDTO) {
+        OrderDTO updatedOrder = orderService.updatePaymentStatus(orderId, paymentStatusUpdateDTO);
+        return ResponseEntity.ok(updatedOrder);
+    }
+
+
     @PostMapping("/order/stripe-client-secret")
     public ResponseEntity<Map<String, String>> createStripeClientSecret(
             @RequestBody StripePaymentDto stripePaymentDto) throws StripeException {
@@ -97,6 +110,7 @@ public class OrderController {
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/admin/order/{orderId}/payment-status")
     public ResponseEntity<OrderDTO> updatePaymentStatus(
@@ -105,6 +119,7 @@ public class OrderController {
         OrderDTO updatedOrder = orderService.updatePaymentStatus(orderId, paymentStatusUpdateDTO);
         return ResponseEntity.ok(updatedOrder);
     }
+
 }
 
 

@@ -1,5 +1,7 @@
 package com.ecommerce.project.service;
 
+import com.ecommerce.project.exceptions.ResourceNotFoundException;
+import com.ecommerce.project.payload.IndividualProductDTO;
 import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,4 +22,9 @@ public interface ProductService {
     ProductDTO deleteProduct(Long productId);
 
     ProductDTO updateProductImage(Long productId, MultipartFile image) throws IOException;
+
+    ProductDTO getProductById(Long productId);
+
+    public IndividualProductDTO getIndividualProduct(Long productId);
+
 }

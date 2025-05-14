@@ -6,6 +6,7 @@ import com.ecommerce.project.model.Cart;
 import com.ecommerce.project.model.Category;
 import com.ecommerce.project.model.Product;
 import com.ecommerce.project.payload.CartDTO;
+import com.ecommerce.project.payload.IndividualProductDTO;
 import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.repositories.CartRepository;
@@ -223,6 +224,32 @@ public class ProductServiceImpl implements ProductService {
         Product updatedProduct = productRepository.save(productFromDb);
         return modelMapper.map(updatedProduct, ProductDTO.class);
     }
+
+    @Override
+    public ProductDTO getProductById(Long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
+        return modelMapper.map(product, ProductDTO.class);
+    }
+
+    @Override
+    public IndividualProductDTO getIndividualProduct(Long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
+
+        return new IndividualProductDTO(
+                product.getProductId(),
+                product.getProductName(),
+                product.getImage(),
+                product.getDescription(),
+                product.getQuantity(),
+                product.getCategory().getCategoryId(), // Use categoryId
+                product.getPrice(),
+                product.getDiscount(),
+                product.getSpecialPrice()
+        );
+    }
+
 
 
 }
